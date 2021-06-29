@@ -17,7 +17,7 @@ export default {
     }
   },
   mounted() {
-    this.socket = io('http://localhost:3001');
+    this.socket = io('http://localhost:3001/');
     console.log(this.socket);
     this.socket.on('message', msg => {
       this.msgs.push(msg)

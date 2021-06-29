@@ -34,7 +34,8 @@
   - name varchar(25)
   - email varchar(255)
   - password varchar(255)
-  - image varchar(255)
+  - icon varchar(255)
+  - background varchar(255)
 - directRooms
   - name varchar(25)
 - groupRooms
@@ -53,9 +54,9 @@
   - latest_message_id int
 
 ### 工数
-- UIデザイン: 6
+- UIデザイン: 6 => 3.5 6/27
 - API実装: 50
-  - 認証: 6
+  - 認証: 6 => 6 6/29
   - 友達追加: 4
   - チャット: 20
   - ビデオチャット: 10
