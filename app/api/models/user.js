@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      User.hasMany(models.Relationship);
     }
   };
   User.init({
@@ -39,6 +40,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     password: {
       type:DataTypes.STRING,
+      allowNull: false,
       validate: {
         notEmpty: {
           msg: '名前は必ず入力してください。'
