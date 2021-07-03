@@ -37,9 +37,10 @@
   - icon varchar(255)
   - background varchar(255)
 - relationship
-  - user_id int
-  - friend_id int
-  - blocked_user_id int
+  - from_user_id int
+  - to_user_id int
+  - friend_flg char(1)
+  - block_flg char(1)
 - directRooms
   - name varchar(25)
 - groupRooms
@@ -65,11 +66,11 @@
   - チャット: 20
   - ビデオチャット: 10
   - 音声通話: 4
-  - ブロック: 2
+  - ブロック: 2 => 2 7/3
   - 検索: 4
 - フロント実装: 44
   - 新規登録: 6
-  - ログイン: 2
+  - ログイン: 2 
   - ホーム: 10
   - トーク一覧: 6
   - トーク: 8

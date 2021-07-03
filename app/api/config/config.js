@@ -9,6 +9,9 @@ module.exports = {
     "dialect": "mysql",
     "secret": 'authServerSecret',
     "timezone": 'Asia/Tokyo',
+    "dialectOptions": {
+			"timezone": "local",
+		}
   },
   "test": {
     "username": "root",

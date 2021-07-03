@@ -11,16 +11,26 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Relationship.belongsTo(models.User, {foreignKey: 'userId'});
+      Relationship.belongsTo(models.User, {foreignKey: 'fromUserId'});
     }
   };
   Relationship.init({
-    userId: {
+    fromUserId: {
       type:DataTypes.INTEGER,
       allowNull: false
     },
-    friendId: DataTypes.INTEGER,
-    blockedUserId: DataTypes.INTEGER
+    toUserId: {
+      type:DataTypes.INTEGER,
+      allowNull: false
+    },
+    friendFlg: {
+      type: DataTypes.STRING(1),
+      defaultValue: "0"
+    },
+    blockFlg: {
+      type: DataTypes.STRING(1),
+      defaultValue: "0"
+    },
   }, {
     sequelize,
     modelName: 'Relationship',

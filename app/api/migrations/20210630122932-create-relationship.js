@@ -8,14 +8,17 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      userId: {
+      fromUserId: {
         type: Sequelize.INTEGER
       },
-      friendId: {
+      toUserId: {
         type: Sequelize.INTEGER
       },
-      blockedUserId: {
-        type: Sequelize.INTEGER
+      friendFlg: {
+        type: Sequelize.STRING(1)
+      },
+      blockFlg: {
+        type: Sequelize.STRING(1)
       },
       createdAt: {
         allowNull: false,
