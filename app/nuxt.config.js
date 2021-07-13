@@ -28,6 +28,8 @@ export default {
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
+    { src: '~/plugins/axios.js'},
+    { src: '~/plugins/localStorage.js'},
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
@@ -40,7 +42,24 @@ export default {
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
     "@nuxtjs/axios",
+    '@nuxtjs/auth'
   ],
+
+  auth: {
+    //strategiesの中身に認証ロジックを書いていく
+    strategies: {
+      //localという認証方法を使う場合
+      local: {
+        //axiosでアクセスする際の設定
+        endpoints: {
+          login: { url: '/api/auth/login', method: 'post', propertyName: 'token' },
+          refresh: { url: '/api/auth/token', method: 'post', propertyName: 'token' },
+          logout: { url: '/api/auth/logout', method: 'post' },
+          user: { url: '/api/users/me', method: 'get', propertyName: 'data' }
+        }
+      }
+    }
+  },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: [

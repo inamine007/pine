@@ -12,6 +12,8 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       User.hasMany(models.Relationship);
+      User.hasMany(models.DirectMessage, {foreignKey: 'userId'});
+      User.belongsToMany(models.DirectRoom, {through: models.UserDirectRoom, foreignKey: 'userId'});
     }
   };
   User.init({

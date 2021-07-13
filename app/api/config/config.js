@@ -7,7 +7,6 @@ module.exports = {
     "database": process.env.DB_DATABASE,
     "host": process.env.DB_HOST,
     "dialect": "mysql",
-    "secret": 'authServerSecret',
     "timezone": 'Asia/Tokyo',
     "dialectOptions": {
 			"timezone": "local",

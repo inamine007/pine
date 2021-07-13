@@ -13,8 +13,8 @@
   * Get port from environment and store in Express.
   */
  
-//  var port = normalizePort(process.env.PORT || '3001');
-//  app.set('port', port);
+ var port = normalizePort(process.env.PORT || '3001');
+ app.set('port', port);
  
  /**
   * Listen on provided port, on all network interfaces.
@@ -22,7 +22,7 @@
  
  var server = http.createServer(app);
  
-//  server.listen(port);
+ server.listen(port);
  server.on('error', onError);
  server.on('listening', onListening);
  

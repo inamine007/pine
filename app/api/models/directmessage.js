@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class Relationship extends Model {
+  class DirectMessage extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,29 +11,24 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Relationship.belongsTo(models.User);
+      DirectMessage.belongsTo(models.User, {foreignKey: 'userId'});
+      DirectMessage.belongsTo(models.DirectRoom, {foreignKey: 'roomId'});
     }
   };
-  Relationship.init({
-    fromUserId: {
+  DirectMessage.init({
+    userId: {
       type:DataTypes.INTEGER,
-      allowNull: false
+      allowNull:false
     },
-    toUserId: {
+    roomId: {
       type:DataTypes.INTEGER,
-      allowNull: false
+      allowNull:false
     },
-    friendFlg: {
-      type: DataTypes.STRING(1),
-      defaultValue: "0"
-    },
-    blockFlg: {
-      type: DataTypes.STRING(1),
-      defaultValue: "0"
-    },
+    message: DataTypes.TEXT,
+    file: DataTypes.STRING,
   }, {
     sequelize,
-    modelName: 'Relationship',
+    modelName: 'DirectMessage',
   });
-  return Relationship;
+  return DirectMessage;
 };

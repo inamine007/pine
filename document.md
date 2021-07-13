@@ -36,13 +36,19 @@
   - password varchar(255)
   - icon varchar(255)
   - background varchar(255)
+- tokens
+  - token
 - relationship
   - from_user_id int
   - to_user_id int
   - friend_flg char(1)
   - block_flg char(1)
 - directRooms
-  - name varchar(25)
+  - id
+- userDirectRooms
+  - user_id int
+  - room_id int
+  - to_user_id int
 - groupRooms
   - name varchar(25)
   - userCount int
@@ -63,7 +69,7 @@
 - API実装: 50
   - 認証: 6 => 6 6/29
   - 友達追加: 4 => 8.5 7/2
-  - チャット: 20
+  - チャット: 20 => 24.5(認証の修正含む) 7/12
   - ビデオチャット: 10
   - 音声通話: 4
   - ブロック: 2 => 2 7/3

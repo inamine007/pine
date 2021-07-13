@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class Relationship extends Model {
+  class UserDirectRoom extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,29 +11,26 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Relationship.belongsTo(models.User);
+      UserDirectRoom.belongsTo(models.User, {foreignKey: 'toUserId'});
+      UserDirectRoom.belongsTo(models.DirectRoom, {foreignKey: 'roomId'});
     }
   };
-  Relationship.init({
-    fromUserId: {
+  UserDirectRoom.init({
+    userId: {
       type:DataTypes.INTEGER,
-      allowNull: false
+      allowNull:false
+    },
+    roomId: {
+      type:DataTypes.INTEGER,
+      allowNull:false
     },
     toUserId: {
       type:DataTypes.INTEGER,
-      allowNull: false
-    },
-    friendFlg: {
-      type: DataTypes.STRING(1),
-      defaultValue: "0"
-    },
-    blockFlg: {
-      type: DataTypes.STRING(1),
-      defaultValue: "0"
-    },
+      allowNull:false
+    }
   }, {
     sequelize,
-    modelName: 'Relationship',
+    modelName: 'UserDirectRoom',
   });
-  return Relationship;
+  return UserDirectRoom;
 };

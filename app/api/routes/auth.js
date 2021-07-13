@@ -21,15 +21,17 @@ router.post('/signup/token', function(req, res, next) {
         name: usr.name,
         email: usr.email
       }
-      const token = jwt.sign(payload,config.development.secret, {
-        expiresIn: '24h'
+      const token = jwt.sign(payload,process.env.JWT_ACCESS_SECRET, {
+        expiresIn: process.env.JWT_ACCESS_TIME
       });
-      var data = {
+      const refreshToken = jwt.sign(payload,process.env.JWT_REFRESH_SECRET, {
+        expiresIn: process.env.JWT_REFRESH_TIME
+      });
+      res.status(200).send({
         success: true,
-        message: '認証に成功しました。',
-        token: token
-      }
-      res.json({data});
+        token: token,
+        refreshToken: refreshToken
+      });
     }).catch(err => {
       var data = {
         success: false,
@@ -41,7 +43,7 @@ router.post('/signup/token', function(req, res, next) {
   })
 });
 
-router.post('/login/token', function(req, res, next) {
+router.post('/login', function(req, res, next) {
   console.log(req.body);
   db.User.findOne({
     where: {
@@ -55,21 +57,29 @@ router.post('/login/token', function(req, res, next) {
           name: usr.name,
           email: usr.email
         }
-        const token = jwt.sign(payload,config.development.secret, {
-          expiresIn: '24h'
+        const token = jwt.sign(payload,process.env.JWT_ACCESS_SECRET, {
+          expiresIn: process.env.JWT_ACCESS_TIME
         });
-        var data = {
-          success: true,
-          message: '認証に成功しました。',
-          token: token
-        }
+        const refreshToken = jwt.sign(payload,process.env.JWT_REFRESH_SECRET, {
+          expiresIn: process.env.JWT_REFRESH_TIME
+        });
+        db.sequelize.sync().then(() => {
+          db.Token.create({token: refreshToken}).then(items =>{
+            res.status(200).send({
+              token: token,
+              refreshToken: refreshToken
+            });
+          }).catch(err => {
+            res.json({err});
+          })
+        });
       } else {
         var data = {
           success: false,
           message: 'パスワードが無効です。'
         }
+        res.json({data});
       }
-      res.json({data});
     } else {
       var data = {
         success: false,
@@ -79,5 +89,52 @@ router.post('/login/token', function(req, res, next) {
     }
   })
 });
+
+router.post('/token', function(req, res, next) {
+  const refreshToken = req.body.token
+  if (refreshToken == null) return res.sendStatus(401)
+
+  db.Token.findOne({
+    where: {
+      token: refreshToken
+    }
+  }).then(token => {
+    if (!token) return res.sendStatus(403);
+
+    jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, user) => {
+      if (err) return res.sendStatus(403)
+      const payload = {
+        id: user.id, 
+        name: user.name, 
+        email: user.email
+      }
+      const accessToken = jwt.sign(payload,process.env.JWT_ACCESS_SECRET, {
+        expiresIn: process.env.JWT_ACCESS_TIME
+      });
+      res.json({ token: accessToken });
+    });
+  }).catch(err => {
+    res.json({err});
+  })
+});
+
+router.delete('/logout', (req, res) => {
+  db.sequelize.sync().then(() => {
+    db.Token.destroy({
+      where: {
+        token: req.body.token
+      }
+    }).then(token => {
+      console.log(token);
+      if (token != 0) {
+        res.sendStatus(204);
+      } else {
+        res.sendStatus(500);
+      }
+    }).catch(err => {
+      res.json({err});
+    });
+  });
+})
 
 module.exports = router;

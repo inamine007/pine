@@ -4,14 +4,20 @@ var config = require('../config/config');
 
 exports.verifyToken = function(req, res, next) {
   // header か　url parameters か post parametersからトークンを取得する
-  var token = req.body.token || req.query.token || req.headers['x-access-token'];
+  // var token = req.body.token || req.query.token || req.headers['x-access-token'];
+  const bearToken = req.headers['authorization'];
+  const bearer = bearToken.split(' ')
+  const token = bearer[1]
 
   if (token) {
 
     // jwtの認証をする
-    jwt.verify(token, config.development.secret, function(error, decoded) {
+    jwt.verify(token, process.env.JWT_ACCESS_SECRET, function(error, decoded) {
       if (error) {
-        return res.json({ success: false, message: 'トークンの認証に失敗しました。' });
+        return res.sendStatus(401).send({
+          success: false,
+          message: 'トークンが無効です。'
+        });
       } else {
         // 認証に成功したらdecodeされた情報をrequestに保存する
         req.decoded = decoded;
