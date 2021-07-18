@@ -6,6 +6,7 @@ var auth = require('../utils/auth');
 var util = require('../utils/util');
 const { sequelize } = require('../models/index');
 var cos = require('../config/const'); 
+const { v4: uuidV4 } = require('uuid')
 
 // トークルーム一覧を取得
 router.get('/', auth.verifyToken, function(req, res, next) {
@@ -34,6 +35,14 @@ router.get('/', auth.verifyToken, function(req, res, next) {
   }).catch(err => {
     res.json({data: err});
   })
+});
+
+router.get('/video', function(req, res, next) {
+  res.json({ roomId: uuidV4() });
+});
+
+router.get('/video/:room', function(req, res, next) {
+  res.render('room', { roomId: req.params.room })
 });
 
 // 特定のルームを取得
