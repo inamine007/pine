@@ -1,7 +1,8 @@
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-// var cookieParser = require('cookie-parser');
+var cookieParser = require('cookie-parser');
+var csrf = require('csurf');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
 // var session = require('express-session');
@@ -22,17 +23,27 @@ var session_opt = {
   cookie: { maxAge: 60 * 60 * 1000 }
 };
 
+var allowRequest = function(req, res, next) {
+  if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
+    next()
+  } else {
+    return res.sendStatus(401).send({
+      message: 'invalid request.'
+    });
+  }
+}
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// app.use(cookieParser());
+app.use(cookieParser());
+app.use(allowRequest);
 // app.use(session(session_opt));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/auth', authRouter);
 app.use('/rooms', roomRouter);
-
 // catch 404 and forward to error handler
 // app.use(function(req, res, next) {
 //   next(createError(404));

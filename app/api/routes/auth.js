@@ -6,39 +6,19 @@ var jwt = require('jsonwebtoken');
 var auth = require('../utils/auth');
 var config = require('../config/config');
 
-router.post('/signup/token', function(req, res, next) {
+router.post('/signup', function(req, res, next) {
   const form = {
     name: req.body.name,
     password: auth.hashPass(req.body.password),
-    email: req.body.email,
-    icon: req.body.icon,
-    background: req.body.background
+    email: req.body.email
   };
   db.sequelize.sync().then(() => {
     db.User.create(form).then(usr => {
-      const payload = {
-        id: usr.id,
-        name: usr.name,
-        email: usr.email
-      }
-      const token = jwt.sign(payload,process.env.JWT_ACCESS_SECRET, {
-        expiresIn: process.env.JWT_ACCESS_TIME
-      });
-      const refreshToken = jwt.sign(payload,process.env.JWT_REFRESH_SECRET, {
-        expiresIn: process.env.JWT_REFRESH_TIME
-      });
-      res.status(200).send({
-        success: true,
-        token: token,
-        refreshToken: refreshToken
-      });
+      res.status(200).send();
     }).catch(err => {
-      var data = {
-        success: false,
-        err: err,
-        message: 'ユーザーが見つかりませんでした。',
-      }
-      res.json({data});
+      res.status(500).send({
+        err
+      });
     })
   })
 });

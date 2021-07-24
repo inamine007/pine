@@ -1,0 +1,70 @@
+body {
+  color: $color-f-base;
+  background-color: #fff;
+  font-family: $font-base;
+  font-style: normal;
+  font-size: 100%;
+  line-height: 1.75;
+}
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/*
+===ボタン===
+*/
+.button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: $spacing;
+  overflow: hidden;
+  font-size: 1.25rem;
+  letter-spacing: 0.01em;
+  border-radius: 30px;
+  line-height: 1;
+  .label {
+    position: relative;
+    z-index: 1;
+  }
+}
+.btn-clarity {
+  font-weight: bold;
+  border: 1px solid $color-f-accent;
+  .label {
+    color: $color-f-accent;
+  }
+}
+.btn-white {
+  font-weight: bold;
+  background: $color-f-accent;
+  .label {
+    color: $color-main;
+  }
+}
+.btn-red {
+  font-weight: bold;
+  background: $color-main;
+  .label {
+    color: $color-f-accent;
+  }
+}
+/*
+===フォーム===
+*/
+.form-area {
+  padding: 0 $spacing-xs;
+}
+.v-messages__message {
+  margin-bottom: $spacing;
+  font-size: 0.5rem;
+}
+.v-alert__content {
+  font-size: 0.85rem;
+}
+.v-application .error--text {
+  align-self: auto;
+}

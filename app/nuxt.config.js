@@ -20,6 +20,7 @@ export default {
 
   // Global CSS: https://go.nuxtjs.dev/config-css
   css: [
+    '@/assets/scss/_style.scss'
   ],
 
   serverMiddleware: [
@@ -37,15 +38,30 @@ export default {
 
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
   buildModules: [
+    '@nuxtjs/vuetify',
   ],
 
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
     "@nuxtjs/axios",
-    '@nuxtjs/auth'
+    '@nuxtjs/auth',
+    "@nuxtjs/svg",
+    "@nuxtjs/style-resources"
   ],
 
+  styleResources: {
+    scss: [
+      '@/assets/scss/_variable.scss' // 読みませたいscssファイルを指定します。
+    ]
+  },
+
   auth: {
+    redirect: {
+      login: '/',   // 未ログイン時に認証ルートへアクセスした際のリダイレクトURL
+      logout: '/',  // ログアウト時のリダイレクトURL
+      callback: false,   // Oauth認証等で必要となる コールバックルート
+      home: '/home',         // ログイン後のリダイレクトURL
+    },
     //strategiesの中身に認証ロジックを書いていく
     strategies: {
       //localという認証方法を使う場合
@@ -65,6 +81,10 @@ export default {
   build: [
     'socket.io-client'
   ],
+
+  router: {
+    middleware: 'redirect'
+  },
 
   watchers: {
     webpack: {

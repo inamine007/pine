@@ -1,6 +1,7 @@
 export default function({ $axios, store, $auth }) {
   $axios.onRequest(config => {
     if (store.$auth.loggedIn) config.headers.common['Authorization'] = store.$auth.getToken('local');
+    config.headers.common['X-Requested-With'] = 'XMLHttpRequest';
     config.headers.common['Accept'] = 'application/json';
   });
 
