@@ -4,7 +4,20 @@ const db = require('../models/index');
 const { Op } = require('sequelize');
 var auth = require('../utils/auth');
 const { sequelize } = require('../models/index');
-var cos = require('../config/const'); 
+var cos = require('../config/const');
+var multer = require('multer');
+
+var storage = multer.diskStorage({
+  // ファイルの保存先を指定
+  destination: function (req, file, cb) {
+    cb(null, 'assets/uploads')
+  },
+  // ファイル名を指定(オリジナルのファイル名を指定)
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + file.originalname)
+  }
+})
+var upload = multer({storage: storage});
 
 // 登録ユーザーを全て取得(※登録人数が増えた場合を想定しない場合)
 router.get('/', auth.verifyToken, function(req, res, next) {
@@ -340,14 +353,13 @@ router.delete('/blocks', auth.verifyToken, function(req, res, next) {
 });
 
 // プロフィール情報を更新
-router.put('/me', auth.verifyToken, function(req, res, next) {
+router.put('/me', auth.verifyToken, upload.any(), function(req, res, next) {
   db.sequelize.sync().then(() => {
     db.User.update({
       'name': req.body.name,
-      'password': auth.hashPass(req.body.password),
       'email': req.body.email,
       'icon': req.body.icon,
-      'background': req.body.background
+      'background': req.body.background,
     },
     {
       where:{id:req.decoded.id}
@@ -371,6 +383,48 @@ router.put('/me', auth.verifyToken, function(req, res, next) {
         }
         res.json({data: data});
       }
+    }).catch(err => {
+      res.status(500).send({
+        err
+      });
+    });
+  });
+});
+
+router.put('/me/:file', auth.verifyToken, upload.any(), function(req, res, next) {
+  db.sequelize.sync().then(() => {
+    db.User.update({
+      'name': req.body.name,
+      'email': req.body.email,
+      'icon': req.params.file === 'icon' ? req.files[0].filename : req.body.icon,
+      'background': req.params.file === 'background' ? req.files[0].filename : req.body.background,
+    },
+    {
+      where:{id:req.decoded.id}
+    }).then(usr => {
+      if (usr == 1) {
+        var data = {
+          success: true,
+          message: 'プロフィールを更新しました。',
+          user: {
+            'name': req.body.name,
+            'email': req.body.email,
+            'icon': req.params.file === 'icon' ? req.files[0].filename : req.body.icon,
+            'background': req.params.file === 'background' ? req.files[0].filename : req.body.background,
+          }
+        }
+        res.json({data: data});
+      } else {
+        var data = {
+          'success': false,
+          'message': 'ユーザーが見つかりませんでした。',
+        }
+        res.json({data: data});
+      }
+    }).catch(err => {
+      res.status(500).send({
+        err
+      });
     });
   });
 });

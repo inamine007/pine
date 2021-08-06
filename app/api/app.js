@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var csrf = require('csurf');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
+var multer = require('multer');
 // var session = require('express-session');
 
 var indexRouter = require('./routes/index');
@@ -32,6 +33,17 @@ var allowRequest = function(req, res, next) {
     });
   }
 }
+
+var storage = multer.diskStorage({
+  // ファイルの保存先を指定
+  destination: function (req, file, cb) {
+    cb(null, './tmp/')
+  },
+  // ファイル名を指定(オリジナルのファイル名を指定)
+  filename: function (req, file, cb) {
+    cb(null, file.originalname)
+  }
+})
 
 app.use(logger('dev'));
 app.use(express.json());
