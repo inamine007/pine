@@ -31,6 +31,7 @@ export default {
   plugins: [
     { src: '~/plugins/axios.js'},
     { src: '~/plugins/localStorage.js'},
+    { src: '~/plugins/util.js'},
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components

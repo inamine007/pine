@@ -8,35 +8,6 @@ const { sequelize } = require('../models/index');
 var cos = require('../config/const'); 
 const { v4: uuidV4 } = require('uuid')
 
-// トークルーム一覧を取得
-router.get('/', auth.verifyToken, function(req, res, next) {
-  db.UserDirectRoom.findAll({
-    where: {
-      userId: 5
-    },
-    include: [{
-      model: db.User,
-      required: false,
-      attributes: ['id', 'name', 'icon']
-    }]
-  }).then(rooms => {
-    var data = [];
-    for(let i=0; i < rooms.length; i++) {
-      data.push({
-        id: rooms[i].dataValues.roomId,
-        toUser: {
-          id: rooms[i].dataValues.User.id,
-          name: rooms[i].dataValues.User.name,
-          icon: rooms[i].dataValues.User.icon,
-        }
-      });
-    }
-    res.json({ data: data });
-  }).catch(err => {
-    res.json({data: err});
-  })
-});
-
 router.get('/video', function(req, res, next) {
   res.json({ roomId: uuidV4() });
 });
@@ -46,7 +17,7 @@ router.get('/video/:room', function(req, res, next) {
 });
 
 // 特定のルームを取得
-router.get('/:id', auth.verifyToken, function(req, res, next) {
+router.get('/direct/:id', auth.verifyToken, function(req, res, next) {
   db.DirectRoom.findOne({
     where: {
       id: req.params.id
@@ -67,6 +38,72 @@ router.get('/:id', auth.verifyToken, function(req, res, next) {
   }).then(room => {
     res.json({ data: room });
   }).catch(err => {
+    res.json({data: err});
+  })
+});
+
+// ダイレクトメッセージ作成
+router.get('/directmessages/latest/:id', auth.verifyToken, function(req, res, next) {
+  db.DirectMessage.findOne({
+    where: {
+      roomId: req.params.id
+    },
+    attributes: ['message', 'file', [util.dateFormat('createdAt'), 'createdAt'], [util.dateFormat('updatedAt'), 'updatedAt']],
+    order: [['createdAt', 'desc']],
+    limit: 1
+  }).then(msg => {
+    res.json({ data: msg });
+  }).catch(err => {
+    res.json({data: err});
+  })
+});
+
+// トークルーム一覧を取得
+router.get('/:id', auth.verifyToken, function(req, res, next) {
+  db.UserDirectRoom.findAll({
+    where: {
+      userId: req.params.id
+    },
+    include: [{
+      model: db.User,
+      required: false,
+      attributes: ['id', 'name', 'icon'],
+      include: [{
+        model: db.DirectRoom,
+        required: false,
+        include: [{
+          model: db.DirectMessage,
+          required: false,
+          attributes: ['message', 'file', [util.dateFormat('DirectMessage.createdAt'), 'createdAt'], [util.dateFormat('DirectMessage.updatedAt'), 'updatedAt']],
+          order: [['createdAt', 'desc']],
+          limit: 1
+        }]
+      }]
+    }],
+  }).then(rooms => {
+    var user = '';
+    var message = '';
+    var data = [];
+    for(let i=0; i < rooms.length; i++) {
+      user = rooms[i].dataValues.User;
+      message = user.DirectRooms[i].dataValues.DirectMessages[i].dataValues;
+      data.push({
+        id: rooms[i].dataValues.roomId,
+        toUser: {
+          id: user.id,
+          name: user.name,
+          icon: user.icon,
+        },
+        message: {
+          message: message.message,
+          file: message.file,
+          createdAt: message.createdAt
+        }
+      });
+    }
+    res.json({ data: data });
+  }).catch(err => {
+    console.log(err);
     res.json({data: err});
   })
 });

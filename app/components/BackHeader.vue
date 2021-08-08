@@ -21,20 +21,3 @@ export default {
   }
 }
 </script>
-<style lang="scss" scoped>
-.page-header {
-  height: 40px;
-  display: flex;
-  align-items: center;
-  img {
-    width: 22px;
-    height: auto;
-    margin-right: $spacing-sm;
-  }
-  h2 {
-    font-weight: bold;
-    font-size: 1.125rem;
-    line-height: 1.1;
-  }
-}
-</style>
