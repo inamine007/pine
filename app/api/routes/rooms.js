@@ -16,8 +16,24 @@ router.get('/video/:room', function(req, res, next) {
   res.render('room', { roomId: req.params.room })
 });
 
-// 特定のルームを取得
-router.get('/direct/:id', auth.verifyToken, function(req, res, next) {
+// 最新メッセージを取得
+router.get('/directmessages/latest/:id', auth.verifyToken, function(req, res, next) {
+  db.DirectMessage.findOne({
+    where: {
+      roomId: req.params.id
+    },
+    attributes: ['message', 'file', [util.dateFormat('createdAt'), 'createdAt'], [util.dateFormat('updatedAt'), 'updatedAt']],
+    order: [['createdAt', 'desc']],
+    limit: 1
+  }).then(msg => {
+    res.json({ data: msg });
+  }).catch(err => {
+    res.json({data: err});
+  })
+});
+
+// 特定のルームのメッセージを取得
+router.get('/directmessages/:id', auth.verifyToken, function(req, res, next) {
   db.DirectRoom.findOne({
     where: {
       id: req.params.id
@@ -42,24 +58,8 @@ router.get('/direct/:id', auth.verifyToken, function(req, res, next) {
   })
 });
 
-// ダイレクトメッセージ作成
-router.get('/directmessages/latest/:id', auth.verifyToken, function(req, res, next) {
-  db.DirectMessage.findOne({
-    where: {
-      roomId: req.params.id
-    },
-    attributes: ['message', 'file', [util.dateFormat('createdAt'), 'createdAt'], [util.dateFormat('updatedAt'), 'updatedAt']],
-    order: [['createdAt', 'desc']],
-    limit: 1
-  }).then(msg => {
-    res.json({ data: msg });
-  }).catch(err => {
-    res.json({data: err});
-  })
-});
-
 // トークルーム一覧を取得
-router.get('/:id', auth.verifyToken, function(req, res, next) {
+router.get('/user/:id', auth.verifyToken, function(req, res, next) {
   db.UserDirectRoom.findAll({
     where: {
       userId: req.params.id
@@ -74,7 +74,7 @@ router.get('/:id', auth.verifyToken, function(req, res, next) {
         include: [{
           model: db.DirectMessage,
           required: false,
-          attributes: ['message', 'file', [util.dateFormat('DirectMessage.createdAt'), 'createdAt'], [util.dateFormat('DirectMessage.updatedAt'), 'updatedAt']],
+          attributes: ['message', 'file', 'createdAt'],
           order: [['createdAt', 'desc']],
           limit: 1
         }]
@@ -97,9 +97,33 @@ router.get('/:id', auth.verifyToken, function(req, res, next) {
         message: {
           message: message.message,
           file: message.file,
-          createdAt: message.createdAt
+          createdAt: util.dateFormatToJST(message.createdAt)
         }
       });
+    }
+    res.json({ data: data });
+  }).catch(err => {
+    console.log(err);
+    res.json({data: err});
+  })
+});
+
+// 特定のルームの情報を取得
+router.get('/:id', auth.verifyToken, function(req, res, next) {
+  db.UserDirectRoom.findOne({
+    where: {
+      userId: req.decoded.id,
+      roomId: req.params.id,
+    },
+    include: [{
+      model: db.User,
+      required: false,
+      attributes: ['id', 'name', 'icon'],
+    }],
+  }).then(room => {
+    var data = {
+      id: room.dataValues.User.id,
+      name: room.dataValues.User.name
     }
     res.json({ data: data });
   }).catch(err => {

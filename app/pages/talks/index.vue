@@ -5,7 +5,7 @@
   </div>
   <Search />
   <ul v-for="(item, key) in listItems" :key="key">
-    <li class="talk-list" @click="toUserPage(item.id)">
+    <li class="talk-list" @click="toRoomPage(item.id)">
       <div class="flex user-box between">
         <div class="flex box">
           <img :src="require(`~/assets/uploads/${item.toUser.icon}`)" v-if="item.toUser.icon && item.toUser.icon != 'null'">
@@ -31,14 +31,14 @@ export default {
     }
   },
   mounted() {
-    this.$axios.$get(`/api/rooms/${this.$auth.user.id}`).then(res => {
+    this.$axios.$get(`/api/rooms/user/${this.$auth.user.id}`).then(res => {
       let date = '';
       let dateFormat = '';
       for(let i=0; i < res.data.length; i++) {
         dateFormat = res.data[i].message.createdAt;
         date = new Date(dateFormat);
         if (this.$isToday(date)) {
-          res.data[i].message['createdAt'] = dateFormat.substr(12, 4);
+          res.data[i].message['createdAt'] = dateFormat.substr(11, 5);
         } else if (this.$isYesterday(date)) {
           res.data[i].message['createdAt'] = '昨日';
         } else if (!this.$isThisYear(date)) {
@@ -53,8 +53,8 @@ export default {
     });
   },
   methods: {
-    async toUserPage(userId) {
-      this.$router.push({path: '/users/' + userId});
+    async toRoomPage(roomId) {
+      this.$router.push({path: '/talks/' + roomId});
     }
   }
 }
