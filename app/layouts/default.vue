@@ -5,6 +5,7 @@
         <Nuxt />
       </v-container>
     </v-main>
+    <div class="dummy-area"></div>
     <footer>
       <Footer />
     </footer>
@@ -24,5 +25,8 @@ footer {
   bottom: 0;
   left: 0;
   width: 100%;
+}
+.dummy-area {
+  height: 40px;
 }
 </style>

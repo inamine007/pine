@@ -79,9 +79,15 @@ export default {
   },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
-  build: [
-    'socket.io-client'
-  ],
+  build: {
+    'socket.io-client': 'socket.io-client',
+    extend(config, ctx) {
+      // Run ESLint on save
+      if (ctx.isDev && ctx.isClient) {
+        config.devtool = 'eval-source-map' // <-- ここを足す
+      }
+    },
+  },
 
   router: {
     middleware: 'redirect'

@@ -1,23 +1,12 @@
 <template>
-  <div class="container">
-    <h1 style="margin: 8px">My Video Chat</h1>
+  <div>
     <div style="flex: 1;">
-        <div id="div_join_screen">
-          <input type="text" id="input_username" placeholder="Enter User name" autofocus>User name ( Nick name )<br /><br /><br />
-          <input type="submit" value="Join" @click="onsubmitButton_Join();">
-        </div>
-        <div id="div_chat_screen" style="margin: 8px; display: none;">
-          <input type="checkbox" id="checkbox_camera" @click="onclickCheckbox_CameraMicrophone()">Camera
-          <input type="checkbox" id="checkbox_microphone" @click="onclickCheckbox_CameraMicrophone()">Microphone
-          <br />
+        <div id="div_chat_screen" style="margin: 8px;">
           <div id="div_userinfo" style="display: flex; flex-wrap: wrap">
-            <div border="1px solid black"><input type="text" id="text_username" readonly="readonly"><br /><video id="video_local" width="320" height="240" style="border: 1px solid black;" autoplay></video></div>
-            <div border="1px solid black"><input type="text" id="text_remote_username" readonly="readonly"><br /><video id="video_remote" width="320" height="240" style="border: 1px solid black;" autoplay></video><audio id="audio_remote" autoplay></audio></div>
+            <video id="video_local" autoplay></video>
+            <div border="1px solid black"><video id="video_remote" style="border: 1px solid black;" autoplay></video></div>
           </div>
-          <input type="text" id="text_message_for_send" size="40" /><input type="submit" value="Send message" @click="onsubmitButton_SendMessage();"/>
-          <textarea id="textarea_message_received" rows="10" cols="60" readonly="readonly"></textarea>
-          <br />
-          <button @click="onclickButton_LeaveChat()">Leave Chat.</button>
+          <!-- <button @click="onclickButton_LeaveChat()">Leave Chat.</button> -->
         </div>
     </div>
   </div>
@@ -27,20 +16,15 @@
 import io from 'socket.io-client'
 
 export default {
+  layout: 'plain',
   data() {
     return {
-      g_elementDivJoinScreen: "",
-      g_elementDivChatScreen: "",
-      g_elementInputUserName: "",
       g_elementCheckboxCamera: "",
       g_elementCheckboxMicrophone: "",
-      g_elementTextUserName: "",
-      g_elementTextRemoteUserName: "",
       g_elementVideoLocal: "",
       g_elementVideoRemote: "",
       g_elementAudioRemote: "",
-      g_elementTextMessageForSend: "",
-      g_elementTextareaMessageReceived: "",
+      g_RoomId: this.$route.params.id,
       g_rtcPeerConnection: null,
       socket: ''
     }
@@ -51,24 +35,15 @@ export default {
   mounted() {
     // ↓↓↓グローバル変数↓↓↓
     this.socket = io('http://localhost:3001');
-    this.g_elementDivJoinScreen= document.getElementById( "div_join_screen" );
-    this.g_elementDivChatScreen= document.getElementById( "div_chat_screen" );
-    this.g_elementInputUserName= document.getElementById( "input_username" );
     this.g_elementCheckboxCamera= document.getElementById( "checkbox_camera" );
     this.g_elementCheckboxMicrophone= document.getElementById( "checkbox_microphone" );
-    this.g_elementTextUserName= document.getElementById( "text_username" );
-    this.g_elementTextRemoteUserName= document.getElementById( "text_remote_username" );
     this.g_elementVideoLocal= document.getElementById( "video_local" );
     this.g_elementVideoRemote= document.getElementById( "video_remote" );
     this.g_elementAudioRemote= document.getElementById( "audio_remote" );
-    this.g_elementTextMessageForSend= document.getElementById( "text_message_for_send" );
-    this.g_elementTextareaMessageReceived= document.getElementById( "textarea_message_received" );
 
     const socket = this.socket;
-    const g_elementTextUserName= this.g_elementTextUserName;
     const g_elementVideoRemote= this.g_elementVideoRemote;
     const g_elementAudioRemote= this.g_elementAudioRemote;
-    const g_elementTextareaMessageReceived= this.g_elementTextareaMessageReceived;
     window.addEventListener("beforeunload", ( event ) => {
       event.preventDefault(); // 既定の動作のキャンセル
 
@@ -79,6 +54,29 @@ export default {
       return ""; // Chrome 以外では、return を設定する必要がある
     });
 
+    this.onsubmitButton_Join();
+
+    navigator.mediaDevices.getUserMedia( { video: true, audio: true } ).then( ( stream ) => {
+      if( this.g_rtcPeerConnection ) {
+        // コネクションオブジェクトに対してTrack追加を行う。
+        stream.getTracks().forEach( ( track ) => {
+          this.g_rtcPeerConnection.addTrack( track, stream );
+          // addTrack()の結果として、「Negotiation needed」イベントが発生する。
+        });
+      }
+
+      // HTML要素へのメディアストリームの設定
+      console.log( "Call : setStreamToElement( Video_Local, stream )" );
+      this.setStreamToElement( this.g_elementVideoLocal, stream );
+    }).catch( ( error ) => {
+      // メディアストリームの取得に失敗⇒古いメディアストリームのまま。チェックボックスの状態を戻す。
+      console.error( "Error : ", error );
+      alert( "Could not start Camera." );
+      // this.g_elementCheckboxCamera.checked = false;
+      // this.g_elementCheckboxMicrophone.checked = false;
+      return;
+    });
+    
     this.socket.on("connect", () => {
       console.log( "Socket Event : connect" );
     });
@@ -91,11 +89,6 @@ export default {
       // 送信元のSocketID
       let strRemoteSocketID = objData.from;
       console.log( "- from : ", objData.from );
-      if( !g_elementTextUserName.value ) {
-        // 自身がまだ参加していないときは、"signaling"イベントを無視。
-        console.log( "Ignore 'signaling' event because I haven't join yet." );
-        return;
-      }
 
       if( "join" === objData.type ) {
         // onclickButton_CreateOfferSDP()、onclickButton_SendOfferSDP()と同様の処理
@@ -139,8 +132,6 @@ export default {
         console.log( "Call : setOfferSDP_and_createAnswerSDP()" );
         setOfferSDP_and_createAnswerSDP( rtcPeerConnection, objData.data );   // 受信したSDPオブジェクトを渡す。
 
-        // リモートユーザー名の設定
-        this.g_elementTextRemoteUserName.value = objData.username;
       } else if( "answer" === objData.type ) {
         // onclickButton_SetAnswerSDPthenChatStarts()と同様の処理
         // 設定するAnswerSDPとして、テキストエリアのデータではなく、受信したデータを使用する。
@@ -154,9 +145,7 @@ export default {
         // AnswerSDPの設定
         console.log( "Call : setAnswerSDP()" );
         setAnswerSDP( this.g_rtcPeerConnection, objData.data );   // 受信したSDPオブジェクトを渡す。
-
-        // リモートユーザー名の設定
-        this.g_elementTextRemoteUserName.value = objData.username;
+        
       } else if( "candidate" === objData.type ) {
         if( !this.g_rtcPeerConnection ) {
           // コネクションオブジェクトがない
@@ -191,8 +180,6 @@ export default {
         if( "message" === objData.type ) {
           // 受信メッセージをメッセージテキストエリアへ追加
           let strMessage = objData.data;
-          g_elementTextareaMessageReceived.value = strMessage + "\n" + g_elementTextareaMessageReceived.value; // 一番上に追加
-          //this.g_elementTextareaMessageReceived.value += strMessage + "\n";  // 一番下に追加
         } else if( "offer" === objData.type ) {
           // 受信したOfferSDPの設定とAnswerSDPの作成
           console.log( "Call : setOfferSDP_and_createAnswerSDP()" );
@@ -499,7 +486,7 @@ export default {
           // チャット前
           // 初期OfferSDPをサーバーを経由して相手に送信
           console.log( "- Send OfferSDP to server" );
-          socket.emit( "signaling", { to: rtcPeerConnection.strRemoteSocketID, type: "offer", data: rtcPeerConnection.localDescription, username: g_elementTextUserName.value } );
+          socket.emit( "signaling", { to: rtcPeerConnection.strRemoteSocketID, type: "offer", data: rtcPeerConnection.localDescription } );
         } else {
           // チャット中
           // 初期OfferSDPをDataChannelを通して相手に直接送信
@@ -528,7 +515,7 @@ export default {
           // チャット前
           // 初期AnswerSDPをサーバーを経由して相手に送信
           console.log( "- Send AnswerSDP to server" );
-          socket.emit( "signaling", { to: rtcPeerConnection.strRemoteSocketID, type: "answer", data: rtcPeerConnection.localDescription, username: g_elementTextUserName.value } );
+          socket.emit( "signaling", { to: rtcPeerConnection.strRemoteSocketID, type: "answer", data: rtcPeerConnection.localDescription } );
         } else {
           // チャット中
           // 初期AnswerSDPをDataChannelを通して相手に直接送信
@@ -616,21 +603,12 @@ export default {
     onsubmitButton_Join() {
       console.log( "UI Event : 'Join' button clicked." );
 
-      // ユーザー名
-      let strInputUserName = this.g_elementInputUserName.value;
-      console.log( "- User name :", strInputUserName );
-      if( !strInputUserName ) {
-        return;
-      }
-      this.g_elementTextUserName.value = strInputUserName;
-
+      // ルーム名
+      let strRoomName = this.g_RoomId;
+      console.log( "- Room name :", strRoomName );
       // サーバーに"join"を送信
       console.log( "- Send 'Join' to server" );
-      this.socket.emit( "join", {} );
-
-      // 画面の切り替え
-      this.g_elementDivJoinScreen.style.display = "none";  // 参加画面の非表示
-      this.g_elementDivChatScreen.style.display = "block";  // チャット画面の表示
+      this.socket.emit( "join", { roomname: strRoomName } );
     },
     onclickCheckbox_CameraMicrophone() {
       // これまでの状態
@@ -733,33 +711,6 @@ export default {
         return;
       });
     },
-    onsubmitButton_SendMessage() {
-      console.log( "UI Event : 'Send Message' button clicked." );
-      if( !this.g_rtcPeerConnection ) {
-        // コネクションオブジェクトがない
-        alert( "Connection object does not exist." );
-        return;
-      }
-      if( !isDataChannelOpen( this.g_rtcPeerConnection ) ) {
-        // DataChannelオブジェクトが開いていない
-        alert( "Datachannel is not open." );
-        return;
-      }
-
-      if( !this.g_elementTextMessageForSend.value ) {
-        alert( "Message for send is empty. Please enter the message for send." );
-        return;
-      }
-
-      // メッセージをDataChannelを通して相手に直接送信
-      console.log( "- Send Message through DataChannel" );
-      this.g_rtcPeerConnection.datachannel.send( JSON.stringify( { type: "message", data: this.g_elementTextMessageForSend.value } ) );
-
-      // 送信メッセージをメッセージテキストエリアへ追加
-      this.g_elementTextareaMessageReceived.value = this.g_elementTextMessageForSend.value + "\n" + this.g_elementTextareaMessageReceived.value; // 一番上に追加
-      //this.g_elementTextareaMessageReceived.value += this.g_elementTextMessageForSend.value + "\n"; // 一番下に追加
-      this.g_elementTextMessageForSend.value = "";
-    }
   },
   onclickButton_LeaveChat() {
     console.log( "UI Event : 'Leave Chat.' button clicked." );
@@ -775,12 +726,8 @@ export default {
         console.log( "Call : endPeerConnection()" );
         endPeerConnection( this.g_rtcPeerConnection );
     }
-    
-    // ユーザー名のクリア
-    this.g_elementTextUserName.value = "";
 
     // 画面の切り替え
-    this.g_elementDivChatScreen.style.display = "none";  // チャット画面の非表示
     this.g_elementDivJoinScreen.style.display = "flex";  // 参加画面の表示
   },
 }
@@ -796,5 +743,15 @@ video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+#video_local {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+#video_remote {
+  width: 150px;
+  height: 200px;
 }
 </style>

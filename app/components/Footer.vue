@@ -10,7 +10,7 @@
       <img src="../assets/images/i_talk_w.svg" v-else>
       <p>トーク</p>
     </div>
-    <div class="i-adduser box" @click="pageTransfer('users')">
+    <div class="i-adduser box" @click="pageTransfer('sorry')">
       <img src="../assets/images/i_adduser_b.svg" v-if="adduserActive">
       <img src="../assets/images/i_adduser_w.svg" v-else>
       <p>友達追加</p>
