@@ -47,7 +47,8 @@ export default {
     "@nuxtjs/axios",
     '@nuxtjs/auth',
     "@nuxtjs/svg",
-    "@nuxtjs/style-resources"
+    "@nuxtjs/style-resources",
+    '@nuxtjs/pwa'
   ],
 
   styleResources: {
@@ -87,6 +88,29 @@ export default {
         config.devtool = 'eval-source-map' // <-- ここを足す
       }
     },
+  },
+
+  manifest: {
+    name: "pine",
+    lang: "ja",
+    short_name: "pine",
+    title: "pine",
+    "og:title": "pine",
+    description: "lineクローン",
+    "og:description": "lineクローン",
+    theme_color: "#EA99CB",
+    background_color: "##EA99CB",
+    icons: [  // アイコンの設定はうまくできなかった
+      {
+        "src": "static/icon.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      },
+    ]
+  },
+
+  workbox: {
+    dev: false, // Service Workerを開発環境で使用するかどうか
   },
 
   router: {
